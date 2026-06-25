@@ -4,7 +4,6 @@ import com.example.notebot.NoteBotMod;
 import com.example.notebot.config.NoteBotConfig;
 import com.example.notebot.midi.MidiNoteEvent;
 import com.example.notebot.midi.MidiParser;
-import com.example.notebot.mixin.ClientPlayerEntityAccessor;
 import com.example.notebot.mixin.MinecraftClientAccessor;
 import net.minecraft.block.Blocks;
 import net.minecraft.client.MinecraftClient;
@@ -32,9 +31,7 @@ import java.util.Map;
  * </ul>
  *
  * <p>Клик происходит максимум раз в тик (≈50 мс) — анти-чит и сервер
- * не любят всплески C2S-пакетов чаще этого. Для очень коротких нот
- * (< clickDelayMs) можно увеличить лимит, но для обычной музыки 50 мс
- * достаточно.</p>
+ * не любят всплески C2S-пакетов чаще этого.</p>
  */
 public final class NotePlaybackManager {
 
@@ -185,14 +182,15 @@ public final class NotePlaybackManager {
         }
 
         // Вычислить yaw/pitch от глаз игрока к центру блока.
+        // В Yarn 1.21+ Entity.setYaw(float) и setPitch(float) — публичные,
+        // так что accessor не нужен.
         Vec3d diff = blockCenter.subtract(eye);
         double horiz = Math.sqrt(diff.x * diff.x + diff.z * diff.z);
         float targetYaw   = (float) Math.toDegrees(Math.atan2(-diff.x, diff.z));
         float targetPitch = (float) Math.toDegrees(-Math.atan2(diff.y, horiz));
 
-        ClientPlayerEntityAccessor acc = (ClientPlayerEntityAccessor) player;
-        acc.notebot$setYaw(targetYaw);
-        acc.notebot$setPitch(targetPitch);
+        player.setYaw(targetYaw);
+        player.setPitch(targetPitch);
         player.setHeadYaw(targetYaw);
 
         // doAttack сам определит, попадает ли raycast в блок, и выполнит

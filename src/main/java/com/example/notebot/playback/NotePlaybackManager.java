@@ -148,12 +148,16 @@ public final class NotePlaybackManager {
         String key = String.valueOf(ev.midiNote());
         String blockName = config.noteMap.get(key);
         if (blockName == null) {
-            // fallback: по имени ноты (без учёта октавы)
-            blockName = config.noteMap.get(
-                    MidiParser.noteName(ev.midiNote()).toUpperCase(Locale.ROOT));
+            // fallback: по имени ноты (без учёта октавы) — пробуем оба варианта
+            // диез/бемоль. Например, для ноты 61 пробуем "C#" и "Db".
+            for (String variant : MidiParser.noteNameVariants(ev.midiNote())) {
+                blockName = config.noteMap.get(variant.toUpperCase(Locale.ROOT));
+                if (blockName != null) break;
+            }
         }
         if (blockName == null) {
-            NoteBotMod.log("Skip unmapped note " + ev.midiNote());
+            NoteBotMod.log("Skip unmapped note " + ev.midiNote()
+                    + " (" + MidiParser.noteName(ev.midiNote()) + ")");
             return false;
         }
         int[] pos = config.blocks.get(blockName);
@@ -209,7 +213,11 @@ public final class NotePlaybackManager {
             String key = String.valueOf(e.midiNote());
             String name = map.get(key);
             if (name == null) {
-                name = map.get(MidiParser.noteName(e.midiNote()).toUpperCase(Locale.ROOT));
+                // Пробуем sharp и flat варианты (C# / Db и т.д.)
+                for (String variant : MidiParser.noteNameVariants(e.midiNote())) {
+                    name = map.get(variant.toUpperCase(Locale.ROOT));
+                    if (name != null) break;
+                }
             }
             if (name == null) continue;
             int[] pos = blocks.get(name);

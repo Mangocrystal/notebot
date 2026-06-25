@@ -97,25 +97,36 @@ public final class NoteBotConfig {
         return configDir().resolve(midiFile);
     }
 
-    /** Дефолтный конфиг: 7 октавных нот, прямой маппинг MIDI-номеров. */
+    /** Дефолтный конфиг: 12 нот хроматической гаммы (C..B), MIDI-номера октавы 4. */
     public static NoteBotConfig createDefault() {
         NoteBotConfig cfg = new NoteBotConfig();
 
-        cfg.blocks.put("C", new int[]{0, 64, 0});
-        cfg.blocks.put("D", new int[]{1, 64, 0});
-        cfg.blocks.put("E", new int[]{2, 64, 0});
-        cfg.blocks.put("F", new int[]{3, 64, 0});
-        cfg.blocks.put("G", new int[]{4, 64, 0});
-        cfg.blocks.put("A", new int[]{5, 64, 0});
-        cfg.blocks.put("B", new int[]{6, 64, 0});
+        // 12 нотных блоков в ряд. Поменяй координаты под свою постройку.
+        cfg.blocks.put("C",  new int[]{0, 64, 0});
+        cfg.blocks.put("C#", new int[]{1, 64, 0});
+        cfg.blocks.put("D",  new int[]{2, 64, 0});
+        cfg.blocks.put("D#", new int[]{3, 64, 0});
+        cfg.blocks.put("E",  new int[]{4, 64, 0});
+        cfg.blocks.put("F",  new int[]{5, 64, 0});
+        cfg.blocks.put("F#", new int[]{6, 64, 0});
+        cfg.blocks.put("G",  new int[]{7, 64, 0});
+        cfg.blocks.put("G#", new int[]{8, 64, 0});
+        cfg.blocks.put("A",  new int[]{9, 64, 0});
+        cfg.blocks.put("A#", new int[]{10, 64, 0});
+        cfg.blocks.put("B",  new int[]{11, 64, 0});
 
-        // Стандартный маппинг MIDI → ноты (4-я октава = C4 = 60).
+        // Прямой маппинг MIDI → ноты. 4-я октава = C4 = 60.
         cfg.noteMap.put("60", "C");
+        cfg.noteMap.put("61", "C#");
         cfg.noteMap.put("62", "D");
+        cfg.noteMap.put("63", "D#");
         cfg.noteMap.put("64", "E");
         cfg.noteMap.put("65", "F");
+        cfg.noteMap.put("66", "F#");
         cfg.noteMap.put("67", "G");
+        cfg.noteMap.put("68", "G#");
         cfg.noteMap.put("69", "A");
+        cfg.noteMap.put("70", "A#");
         cfg.noteMap.put("71", "B");
 
         cfg.clickDelayMs = 80;

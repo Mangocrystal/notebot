@@ -17,8 +17,20 @@ import java.util.List;
  *
  * <p>Использует стандартный {@code javax.sound.midi}, который входит
  * в Java SE — внешних зависимостей не требуется.</p>
+ *
+ * <p>Имена нот возвращаются в двух вариантах: диезном ({@code C#}) и
+ * бемольном ({@code Db}). Например, MIDI-нота 61 — это одновременно
+ * {@code C#4} и {@code Db4}. В конфиге мода можно использовать любой
+ * вариант.</p>
  */
 public final class MidiParser {
+
+    private static final String[] SHARP_NAMES = {
+            "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"
+    };
+    private static final String[] FLAT_NAMES = {
+            "C", "Db", "D", "Eb", "E", "F", "Gb", "G", "Ab", "A", "Bb", "B"
+    };
 
     private MidiParser() {}
 
@@ -64,13 +76,7 @@ public final class MidiParser {
         }
 
         for (Track track : sequence.getTracks()) {
-            // Начальный темп — 500000 мкс / quarter (= 120 BPM).
-            long microsPerQuarter = 500_000L;
-            long absoluteTick = 0;
-
-            // Карта "время в миллисекундах для тика N" строится через темп.
-            // Чтобы не пересчитывать сложно, идём по событиям и поддерживаем
-            // running counter абсолютного времени в мс.
+            long microsPerQuarter = 500_000L; // 120 BPM по умолчанию
             long absoluteMs = 0;
             long lastTick = 0;
 
@@ -82,7 +88,6 @@ public final class MidiParser {
                     absoluteMs += (deltaTicks * microsPerQuarter) / 1000L / (long) ppq;
                 }
                 lastTick = tick;
-                absoluteTick = tick;
 
                 MidiMessage msg = ev.getMessage();
                 if (msg instanceof MetaMessage meta) {
@@ -142,9 +147,26 @@ public final class MidiParser {
         return events;
     }
 
-    /** Преобразовать MIDI-номер в имя ноты (C, C#, D, ... B). */
+    /** Имя ноты в диезной нотации (C, C#, D, ...). По умолчанию. */
     public static String noteName(int midi) {
-        String[] names = {"C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"};
-        return names[midi % 12];
+        return SHARP_NAMES[((midi % 12) + 12) % 12];
+    }
+
+    /** Имя ноты в диезной нотации: C, C#, D, D#, E, F, F#, G, G#, A, A#, B. */
+    public static String noteNameSharp(int midi) {
+        return SHARP_NAMES[((midi % 12) + 12) % 12];
+    }
+
+    /** Имя ноты в бемольной нотации: C, Db, D, Eb, E, F, Gb, G, Ab, A, Bb, B. */
+    public static String noteNameFlat(int midi) {
+        return FLAT_NAMES[((midi % 12) + 12) % 12];
+    }
+
+    /** Все энгармонические эквиваленты имени (для поиска в конфиге). */
+    public static List<String> noteNameVariants(int midi) {
+        String sharp = SHARP_NAMES[((midi % 12) + 12) % 12];
+        String flat  = FLAT_NAMES[((midi % 12) + 12) % 12];
+        if (sharp.equals(flat)) return List.of(sharp);
+        return List.of(sharp, flat);
     }
 }
